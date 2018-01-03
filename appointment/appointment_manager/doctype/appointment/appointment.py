@@ -5,6 +5,16 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from six.moves import range
+from six import string_types
+import frappe
+import json
+
+from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
+	nowdate, get_datetime_str, cstr, get_datetime, now_datetime, format_datetime)
+from frappe.model.document import Document
+from frappe.utils.user import get_enabled_system_users
+from frappe.desk.reportview import get_filters_cond
 # from datetime import datetime
 from frappe.utils import now
 from frappe import msgprint, _
@@ -46,7 +56,7 @@ def get_filter_event(start, end, filters=None):
 	from frappe.desk.calendar import get_event_conditions
 	conditions = get_event_conditions("Appointment", filters)
 
-	events = frappe.db.sql("""select name, employee, starts_on, ends_on, status from `tabAppointment` where((
+	events = frappe.db.sql("""select name,color, starts_on, ends_on, status from `tabAppointment` where((
 	 	(date(starts_on) between date('%(start)s') and date('%(end)s'))
 	 	or (date(ends_on) between date('%(start)s') and date('%(end)s'))
 	 	or (date(starts_on) <= date('%(start)s') and date(ends_on) >= date('%(end)s')) ))
@@ -58,13 +68,13 @@ def get_filter_event(start, end, filters=None):
 		}, as_dict=1)
 	return events
 
-# @frappe.whitelist()
-# def get_events(start, end, filters=None):
-# 	from frappe.desk.calendar import get_event_conditions
-# 	conditions = get_event_conditions("Appointment", filters)
+@frappe.whitelist()
+def get_events(start, end, filters=None):
+	from frappe.desk.calendar import get_event_conditions
+	conditions = get_event_conditions("Appointment", filters)
 
-# 	emp = frappe.db.get_all("Appointment",fields=["name","starts_on","ends_on","status"])
-# 	return emp
+	emp = frappe.db.get_all("Appointment",fields=["name","starts_on","ends_on","status","color"])
+	return emp
 	
 @frappe.whitelist()
 def get_appointment_records(emp, start, end):
@@ -285,3 +295,10 @@ def get_employees(employee=None):
 # 								 `tabPOS Profile` pos 
 # 							where pay.parent= pos.name 
 # 							and pos.name = '%s' """%(pos_profile), as_dict=1)
+
+def set_complete_status(doc,method):
+	frappe.errprint('appointment')
+	if doc.from_appointment:
+		apt= frappe.get_doc("Appointment",doc.from_appointment)
+		apt.status='Completed'
+		apt.save()
