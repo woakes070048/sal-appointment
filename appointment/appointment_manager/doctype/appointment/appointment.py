@@ -30,26 +30,49 @@ class CommandFailedError(Exception):
 
 class Appointment(Document):
 	def autoname(self):
-		frappe.errprint(self.customer)
+		# frappe.errprint(self.customer)
 		self.name = make_autoname(self.customer + '-' + '.#####')
 
-	# def validate(self):
-	# 	assign_app = frappe.db.sql("""select name,starts_on,ends_on from `tabAppointment` where status in ('Open','Confirm') 
-	# 		and ((starts_on >= '%s' and starts_on <= '%s') or (ends_on >= '%s' and ends_on <= '%s')) 
-	# 		and employee = '%s'"""%(self.starts_on, self.ends_on,self.starts_on, self.ends_on, self.employee),as_list=1)
-	# 	if assign_app:
-	# 		frappe.errprint("check")
-	# 		for app in assign_app:
-	# 			frappe.errprint("check")
-	# 			if app[0] != self.name:
-	# 				frappe.throw(_("Appointment '{0}' is already scheduled for this employee within {1} and {2}.Please change appointment time").format(assign_app[0][0], assign_app[0][1],assign_app[0][2]))
+	def validate(self):
+		# assign_app = frappe.db.sql("""select name,starts_on,ends_on from `tabAppointment` where status in ('Open','Confirm') 
+		# 	and ((starts_on >= '%s' and starts_on <= '%s') or (ends_on >= '%s' and ends_on <= '%s')) 
+		# 	and employee = '%s'"""%(self.starts_on, self.ends_on,self.starts_on, self.ends_on, self.employee),as_list=1)
+		# if assign_app:
+		# 	frappe.errprint("check")
+		# 	for app in assign_app:
+		# 		frappe.errprint("check")
+		# 		if app[0] != self.name:
+		# 			frappe.throw(_("Appointment '{0}' is already scheduled for this employee within {1} and {2}.Please change appointment time").format(assign_app[0][0], assign_app[0][1],assign_app[0][2]))
+		# frappe.errprint(["before",self.starts_on])
+		# self.starts_on=get_datetime(self.starts_on)
+		# frappe.errprint(["after",self.starts_on])
+		# self.ends_on=get_datetime(self.ends_on)
+		# it =self.get('service')
+		start_dates = []
+		end_dates = []
+		for it in self.get('service'):
+			start_dates.append(it.starts_on)
+			end_dates.append(it.ends_on)
+		min_start =min(start_dates)
+		max_end =max(end_dates)
+		# frappe.errprint(['strt date',start_dates])
+		# frappe.errprint(['min start',min_start ])
+		self.starts_on =get_datetime(min_start)
+		self.ends_on = get_datetime(max_end)
 
-	def on_update(self):
-		srvices = frappe.db.get_values("Service Items", {"parent":self.name}, ["item"])
-		if srvices:
-			lists = [s[0] for s in srvices]
-			srv = ",".join(lists)
-			frappe.db.sql("""update `tabAppointment` set total_services = '%s' where name = '%s' """%(srv,self.name))
+		# frappe.errprint(it)
+		# frappe.errprint(it[0].starts_on)
+		# self.starts_on = get_datetime(it[0].starts_on)
+		# frappe.errprint(['main after get datetime', self.starts_on])
+		# # self.ends_on = get_datetime(it[0].ends_on)
+
+
+	# def on_update(self):
+	# 	srvices = frappe.db.get_values("Service Items", {"parent":self.name}, ["item"])
+	# 	if srvices:
+	# 		lists = [s[0] for s in srvices]
+	# 		srv = ",".join(lists)
+	# 		frappe.db.sql("""update `tabAppointment` set total_services = '%s' where name = '%s' """%(srv,self.name))
 
 @frappe.whitelist()
 def get_filter_event(start, end, filters=None):
@@ -151,13 +174,14 @@ def get_appointment_details(apt_name):
 @frappe.whitelist()
 def get_item_duration(item,starts_on):
 	it= frappe.get_doc("Item",item)
-	frappe.errprint(it.duration)
+	# frappe.errprint(it.duration)
 	# frappe.errprint(starts_on)
 	temp = datetime.strptime(starts_on, "%Y-%m-%d %H:%M:%S")
 	# frappe.errprint(some)
 
 	# frappe.errprint(some + timedelta(minutes = 30))
-	end =temp + timedelta(minutes = it.duration)
+	end =get_datetime(temp + timedelta(minutes = it.duration))
+	# frappe.errprint(end);
 
 
 	return end
@@ -266,7 +290,7 @@ def get_events_grid(start, end,filters=None):
 	
 	employees=frappe.db.sql("""select name as id,employee_name  as name from tabEmployee where 
 		 status='Active' order by name """, as_dict=1)
-	frappe.errprint(employees)
+	# frappe.errprint(employees)
 	return events,employees
 
 @frappe.whitelist()
@@ -297,7 +321,7 @@ def get_employees(employee=None):
 # 							and pos.name = '%s' """%(pos_profile), as_dict=1)
 
 def set_complete_status(doc,method):
-	frappe.errprint('appointment')
+	# frappe.errprint('appointment')
 	if doc.from_appointment:
 		apt= frappe.get_doc("Appointment",doc.from_appointment)
 		apt.status='Completed'

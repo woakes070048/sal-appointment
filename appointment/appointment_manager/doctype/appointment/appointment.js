@@ -1,20 +1,24 @@
 
-frappe.ui.form.on("Appointment", "validate", function(frm,doc) {
-	var start_dates =[];
-	var end_dates =[];
-	for (var i in frm.doc.service){
-		var service = frm.doc.service[i];
-		start_dates.push(new Date(service.starts_on));
-		end_dates.push(new Date(service.ends_on));
-	}
-	//console.log(dates);
-	var maxDate=new Date(Math.max.apply(null,end_dates));
-	var minDate=new Date(Math.min.apply(null,start_dates));
-	frm.doc.starts_on = minDate;
-	frm.refresh_field("starts_on");
-	frm.doc.ends_on = maxDate;
-	frm.refresh_field("ends_on");
-
+frappe.ui.form.on("Appointment", {
+	validate:function(frm,doc) {
+// 	var start_dates =[];
+// 	var end_dates =[];
+// 	for (var i in frm.doc.service){
+// 		var service = frm.doc.service[i];
+// 		start_dates.push(new Date(service.starts_on));
+// 		end_dates.push(new Date(service.ends_on));
+// 	}
+// 	//console.log(dates);
+// 	var maxDate=new Date(Math.max.apply(null,end_dates));
+// 	var minDate=new Date(Math.min.apply(null,start_dates));
+// 	// console.log(minDate);
+// 	// console.log(['datetime', frappe.datetime.get_value(minDate)]);
+// 	if(frm.doc.__islocal){
+// 	frm.doc.starts_on = minDate;
+// 	frm.refresh_field("starts_on");
+// 	frm.doc.ends_on = maxDate;
+// 	frm.refresh_field("ends_on");
+// }
 
     if(frm.doc.starts_on && frm.doc.ends_on){
 		if(frm.doc.starts_on >frm.doc.ends_on){
@@ -22,6 +26,16 @@ frappe.ui.form.on("Appointment", "validate", function(frm,doc) {
 			validated = false;
 		}
 	}
+},
+// onload: function(frm) {
+// 		frm.set_query("ref_type", function(txt) {
+// 			return {
+// 				"filters": {
+// 					"issingle": 0,
+// 				}
+// 			};
+// 		});
+// 	}
 
 });
 
@@ -80,18 +94,25 @@ frappe.ui.form.on('Service Items', {
 	refresh: function(frm) {
 
 	},
-
+	// starts_on:function(doc, cdt, cdn){
+	// 	var d = locals[cdt][cdn];
+	// 	console.log(d.starts_on);
+	// },
+	// validate:function(doc, cdt, cdn){
+	// 	var d = locals[cdt][cdn];
+	// 	console.log(d.starts_on);
+	// },
 	starts_on: function(doc, cdt, cdn){
 		var d = locals[cdt][cdn];
-		console.log("called");
-		console.log(d.item);
+		// console.log("called");
+		// console.log(d.item);
 		if(!d.item){
-			console.log("no item");
+			// console.log("no item");
 			msgprint("enter item");
 		}
 		else{
 			var duration = frappe.model.get_value("Item",d.item, duration);
-			console.log(duration);
+			// console.log(duration);
 		
 			frappe.call({
 			method: "appointment.appointment_manager.doctype.appointment.appointment.get_item_duration",
@@ -101,20 +122,11 @@ frappe.ui.form.on('Service Items', {
 			},
 			callback: function(r) {
 				if(r.message) {
-					console.log("item duration");
-					date = frappe.datetime.now_time();
-					console.log(date);
-					console.log(d.name);
-
-					d.ends_on = r.message;
-					
-					frappe.refresh_field(d.ends_on);
-
-
-					// cur_frm.set_value("ends_on", frappe.datetime.now_time());
-					frappe.model.set_value(cdn,cdt ,"ends_on",date);
-					
+					// console.log("item duration");
+					//date = frappe.datetime.now_time();
 					// console.log(r.message);
+					// console.log(d.name);
+					d.ends_on = r.message;
 					}
 
 				}
@@ -186,42 +198,42 @@ frappe.ui.form.on('Service Items', {
 // 	});
 // });
 
-frappe.ui.form.on("Appointment", "appointment_type", function(frm,doc) {
-    frappe.call({
-		method: "appointment.appointment_manager.doctype.appointment.appointment.get_customer_mobile",
-		args: {
-			"customer": frm.doc.customer
-		},
-		callback: function(r) {
-			if(r.message) {
-				if (frm.doc.appointment_type=='Home Service'){
-					frm.doc.customer_mobile_no = r.message[0][0]
-					refresh_field("customer_mobile_no")
-				}
-				else{
-					frm.doc.customer_mobile_no = ''
-					refresh_field("customer_mobile_no")
-				}
-			}
-		}
-	});
+// frappe.ui.form.on("Appointment", "appointment_type", function(frm,doc) {
+//     frappe.call({
+// 		method: "appointment.appointment_manager.doctype.appointment.appointment.get_customer_mobile",
+// 		args: {
+// 			"customer": frm.doc.customer
+// 		},
+// 		callback: function(r) {
+// 			if(r.message) {
+// 				if (frm.doc.appointment_type=='Home Service'){
+// 					frm.doc.customer_mobile_no = r.message[0][0]
+// 					refresh_field("customer_mobile_no")
+// 				}
+// 				else{
+// 					frm.doc.customer_mobile_no = ''
+// 					refresh_field("customer_mobile_no")
+// 				}
+// 			}
+// 		}
+// 	});
 
-	frappe.call({
-		method: "appointment.appointment_manager.doctype.appointment.appointment.get_address",
-		args: {
-			"customer": frm.doc.customer
-		},
-		callback: function(r) {
-			if(r.message) {
-				if (frm.doc.appointment_type=='Home Service'){
-					frm.doc.address_display = r.message
-					refresh_field("address_display")
-				}
-				else{
-					frm.doc.address_display = ''
-					refresh_field("address_display")
-				}
-			}
-		}
-	});
-});
+// 	frappe.call({
+// 		method: "appointment.appointment_manager.doctype.appointment.appointment.get_address",
+// 		args: {
+// 			"customer": frm.doc.customer
+// 		},
+// 		callback: function(r) {
+// 			if(r.message) {
+// 				if (frm.doc.appointment_type=='Home Service'){
+// 					frm.doc.address_display = r.message
+// 					refresh_field("address_display")
+// 				}
+// 				else{
+// 					frm.doc.address_display = ''
+// 					refresh_field("address_display")
+// 				}
+// 			}
+// 		}
+// 	});
+// });
