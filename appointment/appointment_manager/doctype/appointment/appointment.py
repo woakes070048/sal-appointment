@@ -33,6 +33,11 @@ class Appointment(Document):
 		# frappe.errprint(self.customer)
 		self.name = make_autoname(self.customer + '-' + '.#####')
 
+	def on_trash(self):
+		frappe.errprint("self.sales_invoice")
+		if self.sales_invoice:
+			frappe.throw(_("Account with existing transaction can not be deleted"))
+
 	def validate(self):
 		# assign_app = frappe.db.sql("""select name,starts_on,ends_on from `tabAppointment` where status in ('Open','Confirm') 
 		# 	and ((starts_on >= '%s' and starts_on <= '%s') or (ends_on >= '%s' and ends_on <= '%s')) 
@@ -59,6 +64,14 @@ class Appointment(Document):
 		# frappe.errprint(['min start',min_start ])
 		self.starts_on =get_datetime(min_start)
 		self.ends_on = get_datetime(max_end)
+	def set_indicator(self):
+		"""Set indicator for portal"""
+		if not self.sales_invoice :
+			self.indicator_color = "orange"
+			self.indicator_title = _("Unpaid")
+		else:
+			self.indicator_color = "green"
+			self.indicator_title = _("Paid")
 
 		# frappe.errprint(it)
 		# frappe.errprint(it[0].starts_on)
@@ -319,10 +332,27 @@ def get_employees(employee=None):
 # 								 `tabPOS Profile` pos 
 # 							where pay.parent= pos.name 
 # 							and pos.name = '%s' """%(pos_profile), as_dict=1)
+def on_trash(self):
+	frappe.errprint(self.sales_invoice)
+	if self.sales_invoice:
+		throw(_("Account with existing transaction can not be deleted"))
+		
 
 def set_complete_status(doc,method):
-	# frappe.errprint('appointment')
+	frappe.errprint('appointment')
 	if doc.from_appointment:
 		apt= frappe.get_doc("Appointment",doc.from_appointment)
 		apt.status='Completed'
+		apt.sales_invoice = doc.name
 		apt.save()
+		doc.indicator_color = "green"
+		doc.indicator_title = _("Paid")
+
+def set_indicator(self):
+	"""Set indicator for portal"""
+	if not self.sales_invoice :
+		self.indicator_color = "orange"
+		self.indicator_title = _("Unpaid")
+	else:
+		self.indicator_color = "green"
+		self.indicator_title = _("Paid")

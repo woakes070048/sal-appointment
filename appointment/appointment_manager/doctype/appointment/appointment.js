@@ -27,15 +27,20 @@ frappe.ui.form.on("Appointment", {
 		}
 	}
 },
-// onload: function(frm) {
-// 		frm.set_query("ref_type", function(txt) {
-// 			return {
-// 				"filters": {
-// 					"issingle": 0,
-// 				}
-// 			};
-// 		});
-// 	}
+onload: function(frm) {
+		frm.set_query("ref_type", function(txt) {
+			return {
+				"filters": {
+					"issingle": 0,
+				}
+			};
+		});
+		frm.fields_dict.customer.get_query = function() {
+    return {
+		query: "erpnext.controllers.queries.customer_query",
+	}
+}
+	}
 
 });
 
@@ -80,6 +85,7 @@ frappe.ui.form.on("Appointment", "refresh", function(frm,doc) {
 		refresh_field("service")
 		refresh_field("status")
 		refresh_field("appointment_type")
+		cur_frm.submit();
 	}
 	if(frm.doc.status == "Confirm"){
 			frm.add_custom_button(__('GO TO POS'), function() {
