@@ -163,6 +163,20 @@ def make_sales_invoice(source_name, target_doc=None):
 
 	return doclist
 
+@frappe.whitelist()
+def get_appointment_query(doctype, txt, searchfield, start, page_len, filters):
+	return frappe.db.sql("""select name, customer from `tabAppointment` where status = "Confirm"
+		order by
+			modified desc
+		limit %(start)s, %(page_len)s""".format(**{
+			'key': searchfield,
+			'mcond':get_match_cond(doctype)
+		}), {
+			'txt': "%%%s%%" % txt,
+			'_txt': txt.replace("%", ""),
+			'start': start,
+			'page_len': page_len
+		})
 
 @frappe.whitelist()
 def get_appointment_details(apt_name):
