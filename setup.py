@@ -13,7 +13,7 @@ with open('recipe_master/__init__.py', 'rb') as f:
 		f.read().decode('utf-8')).group(1)))
 
 setup(
-	name='Appointment',
+	name='appointment',
 	version=version,
 	description='Appointment creation',
 	author='Taher',
